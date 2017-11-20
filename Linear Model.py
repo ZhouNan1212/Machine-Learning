@@ -1,10 +1,23 @@
 # -*- coding: utf-8 -*-
 from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S',
+                    filename='myapp.log',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 
 
 class LinearRegressionModel(object):
@@ -15,6 +28,7 @@ class LinearRegressionModel(object):
         x, y = data[['AT', 'V', 'AP', 'RH']], data['PE']
         self.x, self.y, self.data = x, y, data
         self.model = LinearRegression()
+        logging.info("初始化完成")
         """
         print(x.head())  # 输出特征列的前5行
         print(y.head())  # 输出结果的前5行
@@ -42,9 +56,8 @@ class LinearRegressionModel(object):
         model.fit(data_train, result_train)
         print(model.intercept_)
         print(model.coef_)
-
         result_predict = model.predict(data_test)
-
+        logging.info("=============")
         """
         用scikit-learn计算MSE和RMSE
         均方差（Mean Squared Error, MSE）
@@ -58,9 +71,11 @@ class LinearRegressionModel(object):
         predicted = cross_val_predict(model, x, y, cv=10)
         print("MSE:", metrics.mean_squared_error(y, predicted))
         print("RMSE:", np.sqrt(metrics.mean_squared_error(y, predicted)))
+        logging.info("-------------")
         return y, predicted
 
-    def plot(self, x, y):
+    @staticmethod
+    def plot(x, y):
         fig, ax = plt.subplots()
         ax.scatter(x, y)
         ax.plot([x.min(), x.max()], [x.min(), x.max()], 'k--', lw=4)
@@ -69,12 +84,13 @@ class LinearRegressionModel(object):
         plt.show()
         # plt.savefig("test.png")
 
+
+# class RidgeRegressionModel(object):
+
+
 if __name__ == '__main__':
     s = LinearRegressionModel()
     real_result, predicted_result = s.cross_validation()
-    s.plot(real_result, predicted_result)
+    # s.plot(real_result, predicted_result)
     # linear_regression_model(x_train, y_train)
     # 模型拟合测试集
-
-
-
