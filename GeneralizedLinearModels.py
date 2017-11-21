@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn import metrics
 import matplotlib.pyplot as plt
@@ -98,9 +99,9 @@ class RidgeRegressionModel(LinearRegressionModel):
 
         """
         alpha：{float，array-like}，shape（n_targets）
-        正则化强度; 必须是正浮点数。 正则化改善了问题的条件并减少了估计的方差。 
-        较大的值指定较强的正则化。 Alpha对应于其他线性模型（如Logistic回归或LinearSVC）中的C^-1。 
-        如果传递数组，则假定惩罚被特定于目标。 因此，它们必须在数量上对应。
+        正则化强度; 必须是正浮点数。正则化改善了问题的条件并减少了估计的方差。 
+        较大的值指定较强的正则化。Alpha对应于其他线性模型（如Logistic回归或LinearSVC）中的C^-1。 
+        如果传递数组，则假定惩罚被特定于目标。因此，它们必须在数量上对应。
 
         copy_X：boolean，可选，默认为True.如果为True，将复制X; 否则，它可能被覆盖。
 
@@ -160,10 +161,57 @@ class RidgeRegressionModel(LinearRegressionModel):
         print("RMSE:", np.sqrt(metrics.mean_squared_error(result_test, result_predict)))
 
 
+class LassoRegressionModel(LinearRegressionModel):  # 坐标下降法求解
+    @staticmethod
+    def lasso_regression(data_train, result_train, data_test, result_test):
+        model = Lasso(alpha=0.1,
+                      copy_X=True,
+                      fit_intercept=True,
+                      max_iter=1000,
+                      normalize=False,
+                      positive=False,
+                      precompute=False,  # True | False | array-like, default=False,是否用预计算的gram矩阵加速计算
+                      random_state=None,
+                      selection='cyclic',
+                      tol=0.0001,
+                      warm_start=False  # When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+                      )
+
+        """
+        warm_start : bool, optional 
+            When set to True, reuse the solution of the previous call to fit as initialization, 
+            otherwise, just erase the previous solution.
+        
+        precompute : 
+            Whether to use a precomputed Gram matrix to speed up calculations. 
+            If set to 'auto' let us decide. The Gram matrix can also be passed as argument. 
+            For sparse input this option is always True to preserve sparsity.
+            
+        positive : bool, optional
+            When set to True, forces the coefficients to be positive.
+
+        selection : str, default ‘cyclic’
+            If set to ‘random’, a random coefficient is updated every iteration rather than 
+            looping over features sequentially by default. This (setting to ‘random’) often leads to 
+            significantly faster convergence especially when tol is higher than 1e-4.
+        """
+        model.fit(data_train, result_train)
+        result_predict = model.predict(data_test)
+        logging.info("计算完成")
+        print("MSE:", metrics.mean_squared_error(result_test, result_predict))
+        print("RMSE:", np.sqrt(metrics.mean_squared_error(result_test, result_predict)))
+
+
 if __name__ == '__main__':
-    s = RidgeRegressionModel()
-    data_train, data_test, result_train, result_test = s.split_dataset()
-    s.ridge_regression(data_train, result_train, data_test, result_test)
+    s1 = LinearRegressionModel()
+    data_train, data_test, result_train, result_test = s1.split_dataset()
+    s1.linear_regression_model(data_train, result_train, data_test, result_test)
     # s.plot(real_result, predicted_result)
     # linear_regression_model(x_train, y_train)
     # 模型拟合测试集
+
+    s2 = RidgeRegressionModel()
+    s2.ridge_regression(data_train, result_train, data_test, result_test)
+
+    s3 = LassoRegressionModel()
+    s3.lasso_regression(data_train, result_train, data_test, result_test)
